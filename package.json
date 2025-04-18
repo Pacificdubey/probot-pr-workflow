@@ -1,0 +1,22 @@
+{
+    "name": "@probot/pr-workflow",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Probot Serverless app pr-workflow for Vercel",
+    "scripts": {
+        "start": "probot run ./dist/app.js",
+        "build": "tsc",
+        "test": "ts-node ./test/app.test.ts"
+    },
+    "author": "Prashant-dubey",
+    "dependencies": {
+        "probot": "^13.0.0",
+        "vercel": "^41.6.1"
+    },
+    "devDependencies": {
+        "@octokit/webhooks": "^13.1.0",
+        "smee-client": "^2.0.1",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}
