@@ -6,15 +6,20 @@
     "scripts": {
         "start": "probot run ./dist/app.js",
         "build": "tsc",
+        "deploy": "serverless deploy",
+        "remove": "serverless remove",
         "test": "ts-node ./test/app.test.ts"
     },
     "author": "Prashant-dubey",
     "dependencies": {
+        "@probot/adapter-aws-lambda-serverless": "^4.0.3",
         "probot": "^13.0.0",
         "vercel": "^41.6.1"
     },
     "devDependencies": {
         "@octokit/webhooks": "^13.1.0",
+        "serverless": "^4.5.0",
+        "serverless-offline": "^14.0.0",
         "smee-client": "^2.0.1",
         "ts-node": "^10.9.2",
         "typescript": "^5.3.3"

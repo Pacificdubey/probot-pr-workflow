@@ -1,0 +1,41 @@
+service: github-pr-deploy-bot
+
+frameworkVersion: '4'  # you are using serverless V4, so it's fine
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  environment:
+    APP_ID: ${env:APP_ID}
+    PRIVATE_KEY: ${env:PRIVATE_KEY}
+    WEBHOOK_SECRET: ${env:WEBHOOK_SECRET}
+    NODE_ENV: production
+    LOG_LEVEL: debug
+
+functions:
+  app:
+    handler: handler.handler   # <<- not api/github/webhooks/index.handler now
+    events:
+      - httpApi:
+          path: /api/github/webhooks
+          method: POST
+
+plugins:
+  - serverless-offline
+build:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node18
+    platform: node
+    exclude:
+      - aws-sdk
+  
+
+package:
+  individually: true
+  patterns:
+    - '!node_modules/aws-sdk/**'
+

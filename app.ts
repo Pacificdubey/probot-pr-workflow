@@ -1,6 +1,7 @@
 // app.ts
 import type { Probot, Context } from "probot";
 
+let deploymentActor: string | undefined = undefined;
 
 const deploymentAuthorMap = new Map<string, string>();
 
@@ -59,7 +60,9 @@ export default (app: Probot) => {
     const pullRequest = await context.octokit.pulls.get({ owner, repo, pull_number: prNumber });
     const branchRef = pullRequest.data.head.ref;
     const commitSha = pullRequest.data.head.sha;
-    deploymentAuthorMap.set(branchRef, commentAuthor); // Save author for later use
+    //deploymentAuthorMap.set(branchRef, commentAuthor); // Save author for later use
+    deploymentActor = commentAuthor; // Save globally
+
 
     // Post 'Deployment Triggered' comment
     const placeholderUrl = `https://github.com/${owner}/${repo}/actions`;
@@ -103,9 +106,12 @@ export default (app: Probot) => {
       });
     
       for (const run of runsResponse.data.workflow_runs) {
-        if (run.head_branch === branchRef && run.status !== "completed" && run.triggering_actor?.type === "Bot") {
-        workflowRunId = run.id;
-        break;
+        if (run.head_branch === branchRef && run.status !== "completed" && 
+          (run.triggering_actor?.type === "Bot" || run.triggering_actor?.type === "App")
+        )
+        {
+          workflowRunId = run.id;
+          break;
        }
       }
     
@@ -184,8 +190,8 @@ export default (app: Probot) => {
 
     const prNumber = pr.number;
     //const shortSha = sha.substring(0, 7);
-    const actor = deploymentAuthorMap.get(context.payload.deployment.ref) || context.payload.deployment.creator.login; // Use saved author if possible
-
+    //const actor = deploymentAuthorMap.get(context.payload.deployment.ref) || context.payload.deployment.creator.login; // Use saved author if possible
+    const actor = deploymentActor || context.payload.deployment.creator.login;
     const resultTitle = deploymentState === "success" ? "✅ **Deployment Results**" : "❌ **Deployment Results**";
     const resultBody = deploymentState === "success"
       ? `${actor} successfully deployed branch \`${context.payload.deployment.ref}\` to **${environment}** 🚀`
