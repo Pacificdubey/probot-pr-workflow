@@ -1,0 +1,34 @@
+[permissions]
+# Global allowed users/teams (fallback/default access)
+users = ["core-engineer"]
+teams = ["devops"]
+
+[environment_targets.dev]
+branches = ["feature/*", "bugfix/*"]
+users = ["dev-user1", "dev-user2"]
+teams = ["dev-team"]
+
+[environment_targets.stage]
+branches = ["release/*"]
+users = ["qa-lead"]
+teams = ["release-team"]
+
+[environment_targets.production]
+branches = ["main"]
+users = ["sre-user"]
+teams = ["platform"]
+
+production_environments = ["production", "prod"]
+
+stable_branch = "main"
+
+skip_ci = true
+
+checks = [
+  "ci/build",
+  "ci/tests"
+]
+
+ignored_checks = [
+  "ci/sonar"
+]
