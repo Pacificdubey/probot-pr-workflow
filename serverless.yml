@@ -15,7 +15,7 @@ provider:
 
 functions:
   app:
-    handler: handler.handler   # <<- not api/github/webhooks/index.handler now
+    handler: dist/handler.handler   # <<- not api/github/webhooks/index.handler now
     events:
       - httpApi:
           path: /api/github/webhooks
