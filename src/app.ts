@@ -130,6 +130,63 @@ export default (app: Probot) => {
     app.log.warn("🔗 Updated comment with real workflow run URL.");
   });
 
+  // app.on("deployment_status.created", async (context) => {
+  //   const deploymentState = context.payload.deployment_status.state;
+  //   const environment = context.payload.deployment.environment;
+  //   const owner = context.payload.repository.owner.login;
+  //   const repo = context.payload.repository.name;
+  //   const sha = context.payload.deployment.sha;
+  //   const deploymentId = context.payload.deployment.id;
+
+  //   app.log.warn(`🔔 Deployment status received: ${deploymentState} for ${environment}`);
+
+  //   if (deploymentState === "in_progress") {
+  //     app.log.warn("⏳ Deployment still in progress...");
+  //     return;
+  //   }
+
+  //   const allStatuses = await context.octokit.repos.listDeploymentStatuses({
+  //     owner,
+  //     repo,
+  //     deployment_id: deploymentId,
+  //     per_page: 5
+  //   });
+
+  //   const latestStatus = allStatuses.data[0];
+  //   if (!latestStatus || latestStatus.state !== deploymentState) {
+  //     app.log.warn(`🛑 Skipping outdated deployment status: ${deploymentState}`);
+  //     return;
+  //   }
+
+  //   const prs = await context.octokit.repos.listPullRequestsAssociatedWithCommit({
+  //     owner,
+  //     repo,
+  //     commit_sha: sha
+  //   });
+
+  //   const pr = prs.data[0];
+  //   if (!pr) {
+  //     app.log.error("❌ No associated PR found for commit.");
+  //     return;
+  //   }
+
+  //   const prNumber = pr.number;
+  //   const actor = deploymentActor || context.payload.deployment.creator.login;
+  //   const resultTitle = deploymentState === "success" ? "✅ **Deployment Results**" : "❌ **Deployment Results**";
+  //   const resultBody = deploymentState === "success"
+  //     ? `${actor} successfully deployed branch \`${context.payload.deployment.ref}\` to **${environment}** 🚀`
+  //     : `${actor} failed to deploy branch \`${context.payload.deployment.ref}\` to **${environment}** ❌`;
+
+  //   await context.octokit.issues.createComment({
+  //     owner,
+  //     repo,
+  //     issue_number: prNumber,
+  //     body: `## ${resultTitle}\n${resultBody}`
+  //   });
+
+  //   app.log.warn(`🎯 Deployment result comment posted to PR #${prNumber}`);
+  // });
+
   app.on("deployment_status.created", async (context) => {
     const deploymentState = context.payload.deployment_status.state;
     const environment = context.payload.deployment.environment;
@@ -137,53 +194,56 @@ export default (app: Probot) => {
     const repo = context.payload.repository.name;
     const sha = context.payload.deployment.sha;
     const deploymentId = context.payload.deployment.id;
-
+    const statusId = context.payload.deployment_status.id;
+  
     app.log.warn(`🔔 Deployment status received: ${deploymentState} for ${environment}`);
-
-    if (deploymentState === "in_progress") {
-      app.log.warn("⏳ Deployment still in progress...");
+  
+    // ✅ Only act on final states
+    if (!["success", "failure"].includes(deploymentState)) {
+      app.log.warn(`⏩ Skipping non-final deployment status: ${deploymentState}`);
       return;
     }
-
+  
+    // 🛡️ Ensure this status is the latest one for this deployment
     const allStatuses = await context.octokit.repos.listDeploymentStatuses({
       owner,
       repo,
       deployment_id: deploymentId,
-      per_page: 5
+      per_page: 5,
     });
-
+  
     const latestStatus = allStatuses.data[0];
-    if (!latestStatus || latestStatus.state !== deploymentState) {
+    if (!latestStatus || latestStatus.id !== statusId) {
       app.log.warn(`🛑 Skipping outdated deployment status: ${deploymentState}`);
       return;
     }
-
+  
     const prs = await context.octokit.repos.listPullRequestsAssociatedWithCommit({
       owner,
       repo,
       commit_sha: sha
     });
-
+  
     const pr = prs.data[0];
     if (!pr) {
       app.log.error("❌ No associated PR found for commit.");
       return;
     }
-
+  
     const prNumber = pr.number;
     const actor = deploymentActor || context.payload.deployment.creator.login;
     const resultTitle = deploymentState === "success" ? "✅ **Deployment Results**" : "❌ **Deployment Results**";
     const resultBody = deploymentState === "success"
       ? `${actor} successfully deployed branch \`${context.payload.deployment.ref}\` to **${environment}** 🚀`
       : `${actor} failed to deploy branch \`${context.payload.deployment.ref}\` to **${environment}** ❌`;
-
+  
     await context.octokit.issues.createComment({
       owner,
       repo,
       issue_number: prNumber,
       body: `## ${resultTitle}\n${resultBody}`
     });
-
+  
     app.log.warn(`🎯 Deployment result comment posted to PR #${prNumber}`);
   });
 };
