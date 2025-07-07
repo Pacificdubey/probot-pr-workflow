@@ -16,8 +16,8 @@ variable "webhook_secret" {
   sensitive = true
 }
 
-variable "private_key" {
-  description = "GitHub App private key"
-  type        = string
-  sensitive = true
-}
+# variable "private_key" {
+#   description = "GitHub App private key"
+#   type        = string
+#   sensitive = true
+# }

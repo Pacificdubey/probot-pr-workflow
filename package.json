@@ -13,6 +13,7 @@
     "author": "Prashant-dubey",
     "dependencies": {
         "@iarna/toml": "^2.2.5",
+        "@aws-sdk/client-ssm": "^3.826.0",
         "@probot/adapter-aws-lambda-serverless": "^4.0.3",
         "minimatch": "^10.0.1",
         "probot": "^13.0.0",

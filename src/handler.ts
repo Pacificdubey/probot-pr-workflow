@@ -1,4 +1,4 @@
-import { createProbot, Context } from "probot";
+import { Probot } from "probot";
 import { createLambdaFunction } from "@probot/adapter-aws-lambda-serverless";
 import app from "./app";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
@@ -24,7 +24,7 @@ async function getParameter(name: string): Promise<string> {
 }
 
 async function getProbotOptions() {
-  const paramPrefix = process.env.PROBOT_PARAM_PREFIX || "/dops/probot";
+  const paramPrefix = process.env.PROBOT_PARAM_PREFIX || "/bot/probot";
 
   const [appId, webhookSecret, privateKey] = await Promise.all([
     getParameter(`${paramPrefix}/APP_ID`),
@@ -35,7 +35,12 @@ async function getProbotOptions() {
     log("Missing required Probot parameters from SSM");
   }
   log("🔍 Raw appId from SSM:", appId);
-
+  log("appId raw type:", typeof appId);
+  log("appId as JSON:", JSON.stringify(appId));
+  const parsedAppId = parseInt(appId.trim(), 10);
+   if (isNaN(parsedAppId)) {
+     throw new Error(`Invalid appId fetched from SSM: ${appId}`);
+  }
   return {
     appId: parseInt(appId, 10),
     privateKey,
@@ -45,7 +50,9 @@ async function getProbotOptions() {
 
 export const handler = async (event: any, context: any) => {
   const probotOptions = await getProbotOptions();
-  const probot = createProbot(probotOptions);
+  log("🔧 Probot options:", JSON.stringify(probotOptions, null, 2));
+  const probot = new Probot(probotOptions); 
+  // const probot = createProbot(probotOptions);
   const lambdaFunction = createLambdaFunction(app, { probot });
   return lambdaFunction(event, context);
 };
