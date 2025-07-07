@@ -1,10 +1,10 @@
 resource "aws_lambda_function" "probot" {
-  function_name    = "probot"
+  function_name    = "github-pr-deploy-bot"
   filename         = "${path.module}/../dist.zip"
   source_code_hash = filebase64sha256("${path.module}/../dist.zip")
-  handler          = "index.handler"
-  runtime          = "nodejs20.x"
-  role             = "arn:aws:iam::542891270123:role/execution-role"
+  handler          = "dist/handler.handler"
+  runtime          = "nodejs18.x"
+  role             = aws_iam_role.lambda_exec.arn
   timeout          = var.lambda_timeout
 
   environment {
@@ -12,6 +12,8 @@ resource "aws_lambda_function" "probot" {
       APP_ID         = var.app_id
       PRIVATE_KEY    = var.private_key
       WEBHOOK_SECRET = var.webhook_secret
+      NODE_ENV       = "production"
+      LOG_LEVEL      = "debug"
     }
   }
 }
