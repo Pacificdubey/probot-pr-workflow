@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "probot" {
-  function_name    = "dops-deply-bot"
+  function_name    = "deply-bot"
   s3_bucket =     "mybuckets3probot"
   s3_key =   "app/deploy-bot/dist.zip"
   handler          = "index.handler"
